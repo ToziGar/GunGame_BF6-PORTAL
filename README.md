@@ -84,20 +84,6 @@ Nota: La opción más segura y compatible es subir un único archivo TypeScript 
 - [ ] Probado en local (compila o bundla sin errores).
 - [ ] Hacer una pequeña prueba en servidor antes de publicar globalmente.
 
-## Soporte y seguimiento
-
-Si el Portal devuelve errores tras la subida, proporciona exactamente el mensaje del validador (texto completo) y lo reviso inmediatamente. Puedo:
-
-- Adaptar el script para eliminar APIs no permitidas por el Portal.
-- Producir una versión empaquetada (bundle) compatible con el Portal.
-- Añadir instrucciones paso a paso para empaquetado/bundling con herramientas como esbuild o rollup.
-
----
-
-Si quieres, genero ahora una versión del `GunGameUltra.ts` sin `import` (inlineando las funciones necesarias de `modlib`) para que puedas subirla tal cual. Dime si prefieres que cree:
-
-- La versión "single-file" con `modlib` inlined, lista para subir.
-- Un bundle de JS compilado listo para Portal (requiere que quieras que yo ejecute un bundler aquí).
 # Gun Game Ultra (Portal BF6)
 
 Script y manifiesto unificados para un modo Free-For-All con progresión aleatoria por jugador.
@@ -164,3 +150,4 @@ Ajusta estos valores en `GunGameUltra.ts` según tus preferencias.
 ## Licencia
 
 Consulta `LICENSE` en la raíz del repo.
+
