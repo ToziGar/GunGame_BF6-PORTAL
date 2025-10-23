@@ -289,11 +289,11 @@ const TEXT = {
 const TIERS_COUNT = 17;
 const FINAL_INDEX = TIERS_COUNT - 1;
 const STREAK_FOR_EPIC = 3;
-const EPIC_DURATION = 8; // segundos
-const DOWNGRADE_WINDOW = 3; // segundos
-const CAMP_MAX_STILL = 20; // segundos
-const CAMP_MOVE_EPS = 2.0;
-const HUD_REFRESH_INTERVAL = 1; // segundos
+const EPIC_DURATION_SECONDS = 8; // segundos
+const DOWNGRADE_WINDOW_SECONDS = 3; // segundos
+const CAMP_MAX_STILL_SECONDS = 20; // segundos
+const CAMP_MOVE_EPS = 2.0; // metros
+const HUD_REFRESH_INTERVAL_SECONDS = 1; // segundos
 
 // Estado global del modo.
 const players = new Map<PlayerId, PlayerState>();
@@ -520,7 +520,7 @@ function upgradePlayer(state: PlayerState): void {
 function giveEpicLoadout(state: PlayerState): void {
     const loadout = randChoice(EPIC_LOADOUTS);
     state.epicLoadout = loadout;
-    state.epicUntil = now() + EPIC_DURATION;
+    state.epicUntil = now() + EPIC_DURATION_SECONDS * 1000;
     equipLoadout(state, loadout, true, TEXT.epicKit);
 }
 
@@ -606,7 +606,7 @@ function updateAntiCamping(state: PlayerState): void {
         if (dist < CAMP_MOVE_EPS) {
             if (state.stillSince === undefined) {
                 state.stillSince = currentTime;
-            } else if (currentTime - state.stillSince >= CAMP_MAX_STILL) {
+            } else if ((currentTime - state.stillSince) >= CAMP_MAX_STILL_SECONDS * 1000) {
                 displayMessageToPlayer(player, TEXT.camping);
                 displayMessageToAll(format(TEXT.campingReveal, state.name, Math.round(pos.x), Math.round(pos.z)));
                 state.stillSince = currentTime;
@@ -622,7 +622,7 @@ function updateAntiCamping(state: PlayerState): void {
 // Muestra HUD con progreso/racha con una cadencia controlada.
 function updateHUDs(): void {
     const current = now();
-    if (current - lastHudUpdate < HUD_REFRESH_INTERVAL) return;
+    if ((current - lastHudUpdate) < HUD_REFRESH_INTERVAL_SECONDS * 1000) return;
     lastHudUpdate = current;
 
     players.forEach((state) => {
@@ -682,7 +682,7 @@ export function OnPlayerEarnedKill(
     killerState.streak++;
     victimState.streak = 0;
 
-    if (victimState.lastUpgradeAt && now() - victimState.lastUpgradeAt <= DOWNGRADE_WINDOW) {
+    if (victimState.lastUpgradeAt && (now() - victimState.lastUpgradeAt) <= DOWNGRADE_WINDOW_SECONDS * 1000) {
         downgradePlayer(victimState);
     }
 
@@ -725,7 +725,7 @@ export function OnPlayerDied(
     state.pendingLoadout = state.sequence[state.tierIndex];
 }
 
-export async function OnGameModeStarted(): Promise<void> {
+export function OnGameModeStarted(): void {
     gameStarted = true;
     leaderPlayerId = null;
     lastHudUpdate = 0;
@@ -741,15 +741,6 @@ export async function OnGameModeStarted(): Promise<void> {
         equipLoadout(state, state.sequence[state.tierIndex], false);
     }
 
-    while (gameStarted) {
-        await mod.Wait(1);
-        processEpicTimers();
-        updateHUDs();
-
-        players.forEach((state) => {
-            updateAntiCamping(state);
-        });
-    }
 }
 
 export function OnGameModeEnding(): void {
@@ -760,5 +751,10 @@ export function OnGameModeEnding(): void {
 }
 
 export function OngoingGlobal(): void {
-    // Lógica continua adicional no requerida; el bucle principal cubre las verificaciones.
+    if (!gameStarted) return;
+    processEpicTimers();
+    updateHUDs();
+    players.forEach((state) => {
+        updateAntiCamping(state);
+    });
 }
